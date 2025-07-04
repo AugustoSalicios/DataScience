@@ -30,47 +30,20 @@ for coluna in colunas_categoricas:
     X_train[coluna] = X_train[coluna].replace(categorias_raras, 'Other')
     X_test[coluna] = X_test[coluna].replace(categorias_raras, 'Other')
 
-#Preenchimento missing values KNN
-# Supondo que X_train, X_test, Y_train, Y_test já existem
+#Preenchimento dos missing values com unknown
+colunas_para_preencher = ['Saving accounts', 'Checking account']
+for coluna in colunas_para_preencher:
+    X_train[coluna] = X_train[coluna].fillna('unknown')
+    X_test[coluna] = X_test[coluna].fillna('unknown')
 
-# 1. Crie cópias para evitar avisos
-X_train_knn = X_train.copy()
-X_test_knn = X_test.copy()
 
-# 2. Mapeie manualmente as colunas ordinais com dados faltantes para números
-# Isso converte as categorias para números, mas mantém NaN como NaN
-mapa_contas = {'little': 1, 'moderate': 2, 'rich': 3, 'quite rich': 4}
-X_train_knn['Saving accounts'] = X_train_knn['Saving accounts'].map(mapa_contas)
-X_train_knn['Checking account'] = X_train_knn['Checking account'].map(mapa_contas)
-X_test_knn['Saving accounts'] = X_test_knn['Saving accounts'].map(mapa_contas)
-X_test_knn['Checking account'] = X_test_knn['Checking account'].map(mapa_contas)
-
-# 3. Aplique get_dummies nas outras colunas categóricas que não têm faltantes
-X_train_knn = pd.get_dummies(X_train_knn, drop_first=True)
-X_test_knn = pd.get_dummies(X_test_knn, drop_first=True)
-
-# 4. Alinhe as colunas após o dummies
-X_train_knn, X_test_knn = X_train_knn.align(X_test_knn, join='left', axis=1, fill_value=0)
-
-# 5. AGORA, com tudo numérico (exceto os NaNs), use o KNNImputer
-
-imputer = KNNImputer(n_neighbors=5)
-
-# Aprenda com o treino e transforme ambos
-X_train_imputed = pd.DataFrame(imputer.fit_transform(X_train_knn), columns=X_train_knn.columns)
-X_test_imputed = pd.DataFrame(imputer.transform(X_test_knn), columns=X_test_knn.columns)
-
-# 6. O resultado (X_train_imputed) está pronto para ser usado no seu modelo
-# dt.fit(X_train_imputed, Y_train)
-# ...
-'''
 X_train = pd.get_dummies(X_train, drop_first=True)
 X_test = pd.get_dummies(X_test, drop_first=True)
 X_train, X_test = X_train.align(X_test, join='left', axis=1, fill_value=0)
-'''
+
 dt = DecisionTreeClassifier(class_weight= 'balanced', random_state=42)
-dt.fit(X_train_imputed, Y_train)
-Y_pred = dt.predict(X_test_imputed)
+dt.fit(X_train, Y_train)
+Y_pred = dt.predict(X_test)
 print('Acuracia: ', accuracy_score(Y_test, Y_pred))
 print('\nMatriz Confus: ', )
 print(confusion_matrix(Y_test, Y_pred))
