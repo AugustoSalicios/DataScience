@@ -77,8 +77,3 @@ print(confusion_matrix(Y_test, Y_pred))
 print('\nRelatorio de Classificação: ')
 print(classification_report(Y_test, Y_pred))
 
-dt_smote = DecisionTreeClassifier(
-    max_depth=5,
-    min_samples_leaf=15,
-    random_state=42
-)
